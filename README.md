@@ -1,18 +1,18 @@
-### Simple kernel module for Linux & Windows that can accept a string from the user-space application and then return the string in reverse.
+## Simple kernel module for Linux & Windows that can accept a string from the user-space application and then return the string in reverse.
 
-1. Install kernel headers and build tools:
+### Install kernel headers and build tools:
 
 ```
 sudo apt-get install build-essential linux-headers-$(uname -r)
 ```
 
-2. How to build and run the example:
+### How to build and run the example:
 
 - Clone the source code
 ```
 git clone git@github.com:nguyenhien1994/simple-kernel-module.git
+cd simple-kernel-module
 ```
-
 - Build kernel module and test program with `make`
 - Insert kernel module into the Linux Kernel `sudo insmod module/reverse_string.ko`
 - Update your test string to `./test/test.txt`
@@ -21,7 +21,7 @@ git clone git@github.com:nguyenhien1994/simple-kernel-module.git
 
 - **All above steps are done via `run.sh` script. Just run this script with `bash run.sh`**
 
-3. Tests
+### Tests
 - With small string size:
 ```
 hiennm@hiennm-sb-virt:~/projects/github/simple-kernel-module$ sudo ./test/test ./test/test.txt
@@ -36,7 +36,7 @@ Input: GPEXUPKGBrWHVNEhHE8joM6fK6Diyb9VUAIEp06fC4B2AYZSh0HpbYN1LCUXRkXsvgTrmNN0h
 Output: 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
 ```
 
-4. Improvement?
+### Improvement?
 - Handle file with multiple lines?
 - Load/unload in the userspace program with `system()`/`libkmod`
 - Use mmap or netlink?
