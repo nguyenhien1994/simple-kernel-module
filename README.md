@@ -10,7 +10,7 @@ sudo apt-get install build-essential linux-headers-$(uname -r)
 
 - Clone the source code
 ```
-git clone ...
+git clone git@github.com:nguyenhien1994/simple-kernel-module.git
 ```
 
 - Build kernel module and test program with `make`
