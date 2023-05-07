@@ -9,8 +9,8 @@
 
 static int major_number; // we don't need to know major number in advance
 static int device_open = 0;
-static char *input = NULL;
-static size_t input_size = 0;
+static char *buffer = NULL;
+static size_t buffer_size = 0;
 
 static struct class *dev_class;
 static struct device *dev_device;
@@ -32,10 +32,6 @@ static int reverse_string_release(struct inode *inode, struct file *file)
     device_open--;
     module_put(THIS_MODULE);
 
-    // reset input buffer
-    kfree(input);
-    input = NULL;
-
     printk(KERN_INFO "Device closed\n");
     return 0;
 }
@@ -44,61 +40,65 @@ static int reverse_string_release(struct inode *inode, struct file *file)
 // {
 //     int start = 0, end = length - 1;
 //     while(start < end) {
-//         input[start] ^= input[end];
-//         input[end] ^= input[start];
-//         input[start++] ^= input[end--];
+//         buffer[start] ^= buffer[end];
+//         buffer[end] ^= buffer[start];
+//         buffer[start++] ^= buffer[end--];
 //     }
 // }
 
-static ssize_t reverse_string_read(struct file *file, char *buffer, size_t length, loff_t *offset)
+static ssize_t reverse_string_read(struct file *file, char *data, size_t length, loff_t *offset)
 {
     char* reversed_str = NULL;
     size_t i = 0;
-    if (!input) {
+    size_t str_len = 0;
+    if (!buffer) {
         return 0; // no data to read
     }
 
-    // reverse input string
-    reversed_str = kmalloc(input_size, GFP_KERNEL);
+    str_len = strlen(buffer);
+
+    // reverse buffer string
+    reversed_str = kmalloc(str_len, GFP_KERNEL);
     if (!reversed_str) {
         return -ENOMEM;
     }
 
-    for (i = 0; i < input_size; i++) {
-        reversed_str[i] = input[input_size - i - 1];
+    for (i = 0; i < str_len; i++) {
+        reversed_str[i] = buffer[str_len - i - 1];
     }
 
-    if (copy_to_user(buffer, reversed_str, input_size)) {
+    if (copy_to_user(data, reversed_str, str_len)) {
+        kfree(reversed_str);
         return -EFAULT;
     }
 
-    return input_size;
+    kfree(reversed_str);
+
+    return str_len;
 }
 
 static ssize_t reverse_string_write(struct file *file, const char *data, size_t length, loff_t *offset)
 {
-    if (!input) {
-        input = kmalloc(length, GFP_KERNEL);
-        if (!input) {
+    if (!buffer) {
+        buffer = kmalloc(length, GFP_KERNEL);
+        if (!buffer) {
             return -ENOMEM;
         }
-        input_size = length;
-    } else {
+        buffer_size = length;
+    } else if (length > buffer_size) {
         // resize buffer if necessary
-        if (length > input_size) {
-            input = krealloc(input, length, GFP_KERNEL);
-            if (!input) {
-                return -ENOMEM;
-            }
-            input_size = length;
+        buffer = krealloc(buffer, length, GFP_KERNEL);
+        if (!buffer) {
+            return -ENOMEM;
         }
+        buffer_size = length;
     }
 
-    if (copy_from_user(input, data, length)) {
+    if (copy_from_user(buffer, data, length)) {
         return -EFAULT;
     }
 
-    input[length] = '\0';
+    buffer[length] = '\0';
 
     return length;
 }
@@ -141,6 +141,10 @@ static int __init reverse_string_init(void)
 
 static void __exit reverse_string_exit(void)
 {
+    if (buffer) {
+        kfree(buffer);
+    }
+
     device_destroy(dev_class, MKDEV(major_number, 0));
     class_unregister(dev_class);
     class_destroy(dev_class);
