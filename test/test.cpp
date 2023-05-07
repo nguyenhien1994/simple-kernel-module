@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-#define DEVICE_PATH "/dev/reverse"
+#define DEVICE_PATH "/dev/reverse_string"
 
 int main(int argc, char *argv[]) {
     if (argc != 2) {

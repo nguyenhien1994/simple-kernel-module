@@ -1,4 +1,4 @@
-obj-m += reverse.o
+obj-m += reverse_string.o
 ccflags-y += -Wno-unused-result
 
 KERNELDIR = /lib/modules/$(shell uname -r)/build
